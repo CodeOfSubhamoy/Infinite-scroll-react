@@ -5,6 +5,7 @@ function App() {
   const [movies, setMovies] = useState([]);
   const [totalPage, setTotalPage] = useState(0);
   const [page, setPage] = useState(1);
+  const [fetchedPages, setFetchedPages] = useState(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const observerRef = useRef(null); // Ref for Intersection Observer
   const [isPending, startTransition] = useTransition();
@@ -33,16 +34,24 @@ function App() {
     );
     setIsLoading(false);
   };
-  useEffect(() => {
-    fetchMovies(page);
-  }, [page]);
 
+  useEffect(() => {
+    if (!fetchedPages.has(page)) {
+      fetchMovies(page);
+      setFetchedPages((prev) => new Set(prev).add(page));
+    }
+  }, [page, fetchedPages]);
   const observerCallback = useCallback(
     (entries) => {
       const [entry] = entries;
 
       if (entry.isIntersecting && !isLoading) {
-        startTransition(() => setPage((prev) => prev + 1));
+        startTransition(() =>
+          setPage((prev) => {
+            console.log(`**** page ${prev} ****`);
+            return prev + 1;
+          })
+        );
       }
     },
     [isLoading]
